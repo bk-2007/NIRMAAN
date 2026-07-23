@@ -121,3 +121,4 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ## 📄 License
 
 Enterprise Hackathon Evaluation License • Built with Next.js 15 & MongoDB.
+
