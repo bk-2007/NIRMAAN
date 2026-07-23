@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%" fill="none">
+  <defs>
+    <!-- Blue Gradients -->
+    <linearGradient id="blueMain" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="50%" stop-color="#2563EB"/>
+      <stop offset="100%" stop-color="#1D4ED8"/>
+    </linearGradient>
+
+    <linearGradient id="blueDark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E40AF"/>
+      <stop offset="100%" stop-color="#0F172A"/>
+    </linearGradient>
+
+    <!-- Orange Gradients -->
+    <linearGradient id="orangeMain" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#EA580C"/>
+      <stop offset="60%" stop-color="#F97316"/>
+      <stop offset="100%" stop-color="#FBBF24"/>
+    </linearGradient>
+
+    <linearGradient id="orangeDark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#C2410C"/>
+      <stop offset="100%" stop-color="#7C2D12"/>
+    </linearGradient>
+
+    <!-- Glowing Shadows -->
+    <filter id="glowBlue" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    <filter id="glowOrange" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="10" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Blue "N" Base Structure -->
+  <g filter="url(#glowBlue)">
+    <!-- Left Downward Arrow/Stem -->
+    <path d="M 130,280 L 130,370 L 170,410 L 170,230 Z" fill="url(#blueDark)"/>
+    <path d="M 130,280 L 210,130 L 250,130 L 170,280 Z" fill="url(#blueMain)"/>
+    <!-- Middle Connector & Right Tower -->
+    <path d="M 250,130 L 330,280 L 330,110 L 290,70 L 290,210 Z" fill="url(#blueMain)"/>
+    <path d="M 290,70 L 330,110 L 330,280 L 290,210 Z" fill="url(#blueDark)"/>
+
+    <!-- Circuit Traces & Micro-nodes -->
+    <path d="M 270,160 L 295,195 L 295,230" stroke="#60A5FA" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="270" cy="160" r="5" fill="#60A5FA"/>
+    <circle cx="295" cy="230" r="5" fill="#60A5FA"/>
+
+    <path d="M 285,140 L 310,175 L 310,210" stroke="#93C5FD" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="285" cy="140" r="4" fill="#93C5FD"/>
+    <circle cx="310" cy="210" r="4" fill="#93C5FD"/>
+  </g>
+
+  <!-- Orange Ascending Chevron Arrow -->
+  <g filter="url(#glowOrange)">
+    <!-- Main Upward Arrow Shaft & Head -->
+    <path d="M 130,370 L 260,190 L 290,230 L 200,360 L 270,360 L 380,190 L 380,250 L 420,110 L 330,150 L 360,190 Z" fill="url(#orangeMain)"/>
+    <!-- 3D Bevel Edge -->
+    <path d="M 130,370 L 170,410 L 260,280 L 260,190 Z" fill="url(#orangeDark)"/>
+    <path d="M 200,360 L 270,360 L 310,400 L 230,400 Z" fill="url(#orangeDark)"/>
+    <path d="M 380,190 L 420,110 L 380,130 Z" fill="url(#orangeDark)"/>
+
+    <!-- Circuit Nodes on Orange Arrow -->
+    <path d="M 200,310 L 230,270 L 230,240" stroke="#FDE047" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="200" cy="310" r="4.5" fill="#FDE047"/>
+    <circle cx="230" cy="240" r="4.5" fill="#FDE047"/>
+  </g>
+</svg>
