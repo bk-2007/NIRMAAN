@@ -2,10 +2,6 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "nirmaan_enterprise_super_secret_jwt_key_2026"
-);
-
 interface TokenPayload {
   userId: string;
   name: string;
@@ -16,6 +12,12 @@ interface TokenPayload {
 
 export async function middleware(request: NextRequest) {
   try {
+    const rawSecret = process.env.JWT_SECRET;
+    if (!rawSecret) {
+      return new NextResponse("Internal Server Error: JWT_SECRET is not configured", { status: 500 });
+    }
+    const JWT_SECRET = new TextEncoder().encode(rawSecret);
+
     const { pathname } = request.nextUrl;
     const token = request.cookies.get("nirmaan_token")?.value;
 

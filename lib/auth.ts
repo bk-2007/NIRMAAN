@@ -3,7 +3,13 @@ import bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
 import { UserRole } from "@/types";
 
-const JWT_SECRET = process.env.JWT_SECRET || "nirmaan_enterprise_super_secret_jwt_key_2026";
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error("FATAL: JWT_SECRET environment variable is not defined");
+  }
+  return secret;
+}
 const TOKEN_NAME = "nirmaan_token";
 
 export interface JWTPayload {
@@ -24,12 +30,12 @@ export async function comparePassword(password: string, hashed: string): Promise
 }
 
 export function signToken(payload: JWTPayload): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
+  return jwt.sign(payload, getJwtSecret(), { expiresIn: "7d" });
 }
 
 export function verifyToken(token: string): JWTPayload | null {
   try {
-    return jwt.verify(token, JWT_SECRET) as JWTPayload;
+    return jwt.verify(token, getJwtSecret()) as JWTPayload;
   } catch {
     return null;
   }

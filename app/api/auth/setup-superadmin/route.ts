@@ -3,15 +3,30 @@ import { connectToDatabase } from "@/lib/db";
 import { UserRepository } from "@/lib/repositories";
 import { hashPassword } from "@/lib/auth";
 import { z } from "zod";
+import { rateLimit } from "@/lib/rate-limit";
 
 const setupSchema = z.object({
   name: z.string().min(2),
   email: z.string().email(),
-  password: z.string().min(6),
+  password: z.string().min(5),
 });
 
 export async function POST(req: Request) {
   try {
+    const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "127.0.0.1";
+    const limitResult = await rateLimit(ip, 5, 60 * 1000); // 5 attempts per minute
+    if (!limitResult.success) {
+      return NextResponse.json(
+        { error: "Too many requests. Please try again later." },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": Math.ceil((limitResult.reset - Date.now()) / 1000).toString(),
+          },
+        }
+      );
+    }
+
     await connectToDatabase();
 
     const userCount = await UserRepository.countUsers();

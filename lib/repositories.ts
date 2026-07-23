@@ -1,4 +1,4 @@
-import { supabase } from "./supabase";
+import { supabaseAdmin as supabase } from "./supabase";
 import mongoose from "mongoose";
 import User from "@/models/User";
 import Room from "@/models/Room";
@@ -294,7 +294,7 @@ export const RoomRepository = {
 
       // Enhance with counts
       const enriched = await Promise.all(
-        (data || []).map(async (room) => {
+        (data || []).map(async (room: any) => {
           const teamsCount = await TeamRepository.countTeams({ roomId: room.id });
           const evaluationsCount = await EvaluationRepository.countEvaluations({ roomId: room.id });
           
@@ -935,7 +935,7 @@ export const NotificationRepository = {
       if (error) throw error;
 
       // Filter in memory to replicate complex OR match
-      const filtered = (data || []).filter((notif) => {
+      const filtered = (data || []).filter((notif: any) => {
         return (
           notif.target_role === "ALL" ||
           notif.target_role === role ||

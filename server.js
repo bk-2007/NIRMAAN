@@ -16,10 +16,18 @@ app.prepare().then(() => {
     handle(req, res, parsedUrl);
   });
 
+  const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3000";
+  const allowedOrigins = [socketUrl];
+  if (dev) {
+    allowedOrigins.push("http://localhost:3000");
+    allowedOrigins.push("http://127.0.0.1:3000");
+  }
+
   const io = new Server(httpServer, {
     cors: {
-      origin: "*",
+      origin: allowedOrigins,
       methods: ["GET", "POST"],
+      credentials: true
     },
   });
 

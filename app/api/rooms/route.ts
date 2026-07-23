@@ -15,11 +15,13 @@ const createRoomSchema = z.object({
 export async function GET() {
   try {
     const session = await getSession();
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     await connectToDatabase();
+
+    // If anonymous, return all rooms (for registration dropdown)
+    if (!session) {
+      const allRooms = await RoomRepository.findRooms({});
+      return NextResponse.json({ rooms: allRooms });
+    }
 
     // If Jury or Coordinator, return only assigned room
     let filter: any = {};

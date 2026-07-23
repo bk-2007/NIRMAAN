@@ -7,7 +7,13 @@ export async function GET() {
   try {
     const session = await getSession();
     if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      let requiresSetup = false;
+      try {
+        requiresSetup = (await UserRepository.countUsers()) === 0;
+      } catch (err) {
+        console.error("Failed to check user count:", err);
+      }
+      return NextResponse.json({ error: "Unauthorized", requiresSetup }, { status: 401 });
     }
 
     let user: any = null;

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Sparkles, Lock, Mail, User, ArrowRight, CheckCircle, AlertTriangle } from "lucide-react";
+import { Sparkles, Lock, Mail, User, ArrowRight, CheckCircle, AlertTriangle, Shield, Award } from "lucide-react";
 import FuturisticBackground from "@/components/ui/FuturisticBackground";
 import CursorFollower from "@/components/ui/CursorFollower";
 import { motion } from "framer-motion";
@@ -11,7 +11,7 @@ import { motion } from "framer-motion";
 export default function LoginPage() {
   const [mounted, setMounted] = useState(false);
   const [isSuperAdminSetup, setIsSuperAdminSetup] = useState(false);
-  const [loadingSetupCheck, setLoadingSetupCheck] = useState(true);
+  const [loadingSetupCheck, setLoadingSetupCheck] = useState(false);
 
   // Pre-filled Admin Credentials
   const [email, setEmail] = useState("balakrishnagorle2007@gmail.com");
@@ -21,26 +21,45 @@ export default function LoginPage() {
   const [success, setSuccess] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  // Registration States
+  const [isRegister, setIsRegister] = useState(false);
+  const [regName, setRegName] = useState("");
+  const [regEmail, setRegEmail] = useState("");
+  const [regPassword, setRegPassword] = useState("");
+  const [regRole, setRegRole] = useState<"JURY" | "COORDINATOR">("JURY");
+  const [regRoomId, setRegRoomId] = useState("");
+  const [rooms, setRooms] = useState<any[]>([]);
+
   const router = useRouter();
 
   useEffect(() => {
     setMounted(true);
     fetch("/api/auth/me")
       .then(async (res) => {
-        if (res.ok) {
-          const text = await res.text();
-          try {
-            const data = JSON.parse(text);
-            if (data.user) {
-              if (data.user.role === "ADMIN") router.push("/admin/dashboard");
-              else if (data.user.role === "JURY") router.push("/jury/dashboard");
-              else if (data.user.role === "COORDINATOR") router.push("/coord/dashboard");
-            }
-          } catch {}
+        const text = await res.text();
+        try {
+          const data = JSON.parse(text);
+          if (data.requiresSetup) {
+            setIsSuperAdminSetup(true);
+          }
+          if (res.ok && data.user) {
+            if (data.user.role === "ADMIN") router.push("/admin/dashboard");
+            else if (data.user.role === "JURY") router.push("/jury/dashboard");
+            else if (data.user.role === "COORDINATOR") router.push("/coord/dashboard");
+          }
+        } catch {}
+      })
+      .catch(() => {});
+
+    // Fetch rooms for registration dropdown
+    fetch("/api/rooms")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.rooms) {
+          setRooms(data.rooms);
         }
       })
-      .catch(() => {})
-      .finally(() => setLoadingSetupCheck(false));
+      .catch((err) => console.error("Failed to load rooms:", err));
   }, [router]);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -80,6 +99,52 @@ export default function LoginPage() {
       }, 500);
     } catch (err: any) {
       setError(err.message || "Invalid credentials");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+    setSubmitting(true);
+
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: regName,
+          email: regEmail,
+          password: regPassword,
+          role: regRole,
+          roomId: regRoomId,
+        }),
+      });
+
+      const text = await res.text();
+      let data: any = {};
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error("Server returned an invalid response.");
+      }
+
+      if (!res.ok) {
+        throw new Error(data.error || "Registration failed");
+      }
+
+      setSuccess("Account registered successfully! Redirecting...");
+      setTimeout(() => {
+        if (data.user.role === "JURY") {
+          router.push("/jury/dashboard");
+        } else if (data.user.role === "COORDINATOR") {
+          router.push("/coord/dashboard");
+        }
+      }, 500);
+    } catch (err: any) {
+      setError(err.message || "Failed to register account");
     } finally {
       setSubmitting(false);
     }
@@ -127,8 +192,6 @@ export default function LoginPage() {
       setSubmitting(false);
     }
   };
-
-  if (!mounted) return null;
 
   return (
     <div className="relative min-h-screen flex items-center justify-center p-4 sm:p-6 overflow-hidden bg-[#0F172A]">
@@ -249,6 +312,123 @@ export default function LoginPage() {
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>
+        ) : isRegister ? (
+          <form onSubmit={handleRegister} className="space-y-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                Full Name
+              </label>
+              <div className="relative">
+                <User className="absolute left-3.5 top-3 w-4 h-4 text-slate-500" />
+                <input
+                  type="text"
+                  required
+                  value={regName}
+                  onChange={(e) => setRegName(e.target.value)}
+                  placeholder="John Doe"
+                  className="w-full glass-input rounded-xl pl-10 pr-4 py-2.5 text-sm"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                Email Address
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3.5 top-3 w-4 h-4 text-slate-500" />
+                <input
+                  type="email"
+                  required
+                  value={regEmail}
+                  onChange={(e) => setRegEmail(e.target.value)}
+                  placeholder="user@nirmaan.org"
+                  className="w-full glass-input rounded-xl pl-10 pr-4 py-2.5 text-sm"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                Password
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3.5 top-3 w-4 h-4 text-slate-500" />
+                <input
+                  type="password"
+                  required
+                  minLength={5}
+                  value={regPassword}
+                  onChange={(e) => setRegPassword(e.target.value)}
+                  placeholder="••••••••••••"
+                  className="w-full glass-input rounded-xl pl-10 pr-4 py-2.5 text-sm"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                Select Role
+              </label>
+              <div className="relative">
+                <Shield className="absolute left-3.5 top-3 w-4 h-4 text-slate-500" />
+                <select
+                  value={regRole}
+                  onChange={(e) => setRegRole(e.target.value as any)}
+                  className="w-full glass-input rounded-xl pl-10 pr-4 py-2.5 text-sm bg-slate-900 text-slate-300 border border-slate-700/50 focus:outline-none"
+                >
+                  <option value="JURY">JURY PANEL (Evaluator)</option>
+                  <option value="COORDINATOR">STUDENT COORDINATOR</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                Assign to Room
+              </label>
+              <div className="relative">
+                <Award className="absolute left-3.5 top-3 w-4 h-4 text-slate-500" />
+                <select
+                  required
+                  value={regRoomId}
+                  onChange={(e) => setRegRoomId(e.target.value)}
+                  className="w-full glass-input rounded-xl pl-10 pr-4 py-2.5 text-sm bg-slate-900 text-slate-300 border border-slate-700/50 focus:outline-none"
+                >
+                  <option value="">-- Choose Assigned Room --</option>
+                  {rooms.map((room) => (
+                    <option key={room._id || room.id} value={room._id || room.id}>
+                      {room.name} ({room.roomNumber})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={submitting}
+              data-magnetic="true"
+              className="w-full mt-3 py-3 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-orange-500 hover:from-blue-500 hover:to-orange-400 text-white font-semibold text-sm shadow-glow flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+            >
+              {submitting ? "Registering account..." : "Register & Sign In"}
+              <ArrowRight className="w-4 h-4" />
+            </button>
+
+            <div className="text-center mt-4">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsRegister(false);
+                  setError("");
+                  setSuccess("");
+                }}
+                className="text-xs text-blue-400 hover:underline bg-transparent border-none cursor-pointer"
+              >
+                Already have an account? Sign In
+              </button>
+            </div>
+          </form>
         ) : (
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
@@ -294,6 +474,20 @@ export default function LoginPage() {
               {submitting ? "Signing in..." : "Sign In to Platform"}
               <ArrowRight className="w-4 h-4" />
             </button>
+
+            <div className="text-center mt-4">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsRegister(true);
+                  setError("");
+                  setSuccess("");
+                }}
+                className="text-xs text-orange-400 hover:underline bg-transparent border-none cursor-pointer"
+              >
+                Don't have an account? Register here
+              </button>
+            </div>
           </form>
         )}
 

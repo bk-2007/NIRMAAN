@@ -100,3 +100,87 @@ create index if not exists idx_teams_room_id on teams(room_id);
 create index if not exists idx_evaluations_room_id on evaluations(room_id);
 create index if not exists idx_evaluations_total_score on evaluations(total_score desc);
 create index if not exists idx_requests_room_status on requests(room_id, status);
+
+-- Enable Row Level Security (RLS) on all tables
+alter table rooms enable row level security;
+alter table users enable row level security;
+alter table teams enable row level security;
+alter table evaluations enable row level security;
+alter table requests enable row level security;
+alter table notifications enable row level security;
+alter table audit_logs enable row level security;
+
+-- Define Policies
+
+-- 1. Rooms Table Policies
+create policy "Authenticated users can read rooms" on rooms
+  for select using (auth.role() = 'authenticated');
+
+create policy "Admins can manage rooms" on rooms
+  for all using ((auth.jwt() ->> 'role') = 'ADMIN');
+
+-- 2. Users Table Policies
+create policy "Users can read matching user profile" on users
+  for select using (
+    email = (auth.jwt() ->> 'email')
+    or (auth.jwt() ->> 'role') = 'ADMIN'
+  );
+
+create policy "Users can manage themselves" on users
+  for update using (email = (auth.jwt() ->> 'email'));
+
+create policy "Admins can manage users" on users
+  for all using ((auth.jwt() ->> 'role') = 'ADMIN');
+
+-- 3. Teams Table Policies
+create policy "Authenticated users can read teams" on teams
+  for select using (auth.role() = 'authenticated');
+
+create policy "Room coordinators/jury can manage teams" on teams
+  for all using (
+    (auth.jwt() ->> 'room_id') = room_id::text
+    or (auth.jwt() ->> 'role') = 'ADMIN'
+  );
+
+-- 4. Evaluations Table Policies
+create policy "Room users can read evaluations" on evaluations
+  for select using (
+    (auth.jwt() ->> 'room_id') = room_id::text
+    or (auth.jwt() ->> 'role') = 'ADMIN'
+  );
+
+create policy "Room jury can manage evaluations" on evaluations
+  for all using (
+    (auth.jwt() ->> 'room_id') = room_id::text
+    and (auth.jwt() ->> 'role') = 'JURY'
+  );
+
+-- 5. Requests Table Policies
+create policy "Room jury can manage requests" on requests
+  for all using (
+    (auth.jwt() ->> 'room_id') = room_id::text
+    and (auth.jwt() ->> 'role') = 'JURY'
+  );
+
+create policy "Admins can manage requests" on requests
+  for all using ((auth.jwt() ->> 'role') = 'ADMIN');
+
+-- 6. Notifications Table Policies
+create policy "Users can read relevant notifications" on notifications
+  for select using (
+    target_role = 'ALL'
+    or (auth.jwt() ->> 'role') = target_role
+    or (auth.jwt() ->> 'room_id') = target_room_id::text
+  );
+
+create policy "Admins can manage notifications" on notifications
+  for all using ((auth.jwt() ->> 'role') = 'ADMIN');
+
+-- 7. Audit Logs Table Policies
+create policy "Admins can read audit logs" on audit_logs
+  for select using ((auth.jwt() ->> 'role') = 'ADMIN');
+
+create policy "System can write audit logs" on audit_logs
+  for insert with check (true);
+
+
