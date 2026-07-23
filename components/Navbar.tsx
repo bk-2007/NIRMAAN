@@ -68,17 +68,9 @@ export default function Navbar({ user }: NavbarProps) {
             />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-lg font-black tracking-tight bg-gradient-to-r from-blue-400 via-slate-100 to-orange-400 bg-clip-text text-transparent">
-                NIRMAAN
-              </h1>
-              <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-blue-900/50 text-blue-300 border border-blue-700/50">
-                PRO
-              </span>
-            </div>
-            <p className="text-[11px] text-slate-400 hidden sm:block">
-              Enterprise Hackathon Evaluation Platform
-            </p>
+            <h1 className="text-lg font-black tracking-tight bg-gradient-to-r from-blue-400 via-slate-100 to-orange-400 bg-clip-text text-transparent">
+              NIRMAAN
+            </h1>
           </div>
         </div>
 
